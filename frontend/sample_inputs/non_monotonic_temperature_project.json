@@ -1,0 +1,85 @@
+{
+  "project_name": "Room Temperature Comfort (Non-Monotonic)",
+  "description": "This project demonstrates the use of the UTANM algorithm to model non-monotonic preferences for room temperature comfort. The criteria include various factors that influence comfort, and the alternatives represent different temperature settings with their associated attributes.",
+  "algorithm_settings": {
+    "algorithm": "UTANM",
+    "sigma": 0.05,
+    "theta": 0.0,
+    "big_m": 1000.0,
+    "ineq": 0.001,
+    "max_nonmonotonicity_degree": 5,
+    "objective_threshold": 0.0,
+    "minimum_improvement": 0.0,
+    "missing_value_treatment": "assumeAverageValue"
+  },
+  "criteria": {
+    "Room temperature (°C)": {
+      "type": "cardinal",
+      "shape": "gain",
+      "n_segments": 5
+    }
+  },
+  "alternatives": {
+    "reference_alternatives": [
+      {
+        "Name": "Temp 8C",
+        "Room temperature (°C)": 8,
+        "rank": 9
+      },
+      {
+        "Name": "Temp 12C",
+        "Room temperature (°C)": 12,
+        "rank": 7
+      },
+      {
+        "Name": "Temp 16C",
+        "Room temperature (°C)": 16,
+        "rank": 5
+      },
+      {
+        "Name": "Temp 20C",
+        "Room temperature (°C)": 20,
+        "rank": 3
+      },
+      {
+        "Name": "Temp 22C",
+        "Room temperature (°C)": 22,
+        "rank": 1
+      },
+      {
+        "Name": "Temp 24C",
+        "Room temperature (°C)": 24,
+        "rank": 2
+      },
+      {
+        "Name": "Temp 28C",
+        "Room temperature (°C)": 28,
+        "rank": 4
+      },
+      {
+        "Name": "Temp 32C",
+        "Room temperature (°C)": 32,
+        "rank": 6
+      },
+      {
+        "Name": "Temp 36C",
+        "Room temperature (°C)": 36,
+        "rank": 8
+      }
+    ],
+    "non_reference_alternatives": [
+      {
+        "Name": "Temp 10C (candidate)",
+        "Room temperature (°C)": 10
+      },
+      {
+        "Name": "Temp 26C (candidate)",
+        "Room temperature (°C)": 26
+      },
+      {
+        "Name": "Temp 34C (candidate)",
+        "Room temperature (°C)": 34
+      }
+    ]
+  }
+}

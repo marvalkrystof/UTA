@@ -1,0 +1,218 @@
+{
+  "project_name": "Nominal Criteria Stress Test",
+  "algorithm_settings": {
+    "algorithm": "UTASTAR",
+    "sigma": 0.01,
+    "missing_value_treatment": "assumeAverageValue"
+  },
+  "criteria": {
+    "Source": {
+      "type": "nominal",
+      "categories": [
+        "Public Broadcaster",
+        "Quality Press",
+        "Specialist Blog",
+        "Independent Local",
+        "Tabloid",
+        "Unknown"
+      ]
+    },
+    "Region": {
+      "type": "nominal",
+      "categories": [
+        "Domestic",
+        "E.U.",
+        "U.S.",
+        "Asia",
+        "Developing Countries",
+        "Other"
+      ]
+    },
+    "Format": {
+      "type": "nominal",
+      "categories": [
+        "Investigative",
+        "Deep Analysis",
+        "Interview",
+        "Quick Brief",
+        "Live Update"
+      ]
+    },
+    "Topic": {
+      "type": "nominal",
+      "categories": [
+        "Politics",
+        "Science",
+        "Health",
+        "Economy",
+        "Culture",
+        "Crime",
+        "Technology",
+        "Environment"
+      ]
+    },
+    "Editorial Tone": {
+      "type": "nominal",
+      "categories": [
+        "Neutral",
+        "Constructive",
+        "Alarmist",
+        "Sensational"
+      ]
+    }
+  },
+  "alternatives": {
+    "reference_alternatives": [
+      {
+        "Name": "Evidence Brief",
+        "rank": 1,
+        "Source": "Public Broadcaster",
+        "Region": "Domestic",
+        "Format": "Deep Analysis",
+        "Topic": "Science",
+        "Editorial Tone": "Neutral"
+      },
+      {
+        "Name": "Science Verified",
+        "rank": 1,
+        "Source": "Quality Press",
+        "Region": "E.U.",
+        "Format": "Investigative",
+        "Topic": "Environment",
+        "Editorial Tone": "Constructive"
+      },
+      {
+        "Name": "Policy Breakdown",
+        "rank": 2,
+        "Source": "Public Broadcaster",
+        "Region": "Domestic",
+        "Format": "Deep Analysis",
+        "Topic": "Politics",
+        "Editorial Tone": "Neutral"
+      },
+      {
+        "Name": "Climate Lab",
+        "rank": 2,
+        "Source": "Specialist Blog",
+        "Region": "E.U.",
+        "Format": "Investigative",
+        "Topic": "Environment",
+        "Editorial Tone": "Constructive"
+      },
+      {
+        "Name": "Local Interview",
+        "rank": 3,
+        "Source": "Independent Local",
+        "Region": "Domestic",
+        "Format": "Interview",
+        "Topic": "Health",
+        "Editorial Tone": "Neutral"
+      },
+      {
+        "Name": "Global Economy Check",
+        "rank": 3,
+        "Source": "Quality Press",
+        "Region": "U.S.",
+        "Format": "Quick Brief",
+        "Topic": "Economy",
+        "Editorial Tone": "Constructive"
+      },
+      {
+        "Name": "Crime Live",
+        "rank": 4,
+        "Source": "Independent Local",
+        "Region": "Domestic",
+        "Format": "Live Update",
+        "Topic": "Crime",
+        "Editorial Tone": "Alarmist"
+      },
+      {
+        "Name": "Celebrity Buzz",
+        "rank": 4,
+        "Source": "Tabloid",
+        "Region": "U.S.",
+        "Format": "Quick Brief",
+        "Topic": "Culture",
+        "Editorial Tone": "Sensational"
+      },
+      {
+        "Name": "Opinion Shock",
+        "rank": 5,
+        "Source": "Tabloid",
+        "Region": "Other",
+        "Format": "Live Update",
+        "Topic": "Politics",
+        "Editorial Tone": "Sensational"
+      },
+      {
+        "Name": "Market Rumor",
+        "rank": 5,
+        "Source": "Unknown",
+        "Region": "Asia",
+        "Format": "Quick Brief",
+        "Topic": "Economy",
+        "Editorial Tone": "Alarmist"
+      },
+      {
+        "Name": "Click Alert",
+        "rank": 6,
+        "Source": "Unknown",
+        "Region": "Developing Countries",
+        "Format": "Live Update",
+        "Topic": "Crime",
+        "Editorial Tone": "Sensational"
+      },
+      {
+        "Name": "Unverified Leak",
+        "rank": 6,
+        "Source": "Unknown",
+        "Region": "Other",
+        "Format": "Live Update",
+        "Topic": "Technology",
+        "Editorial Tone": "Alarmist"
+      }
+    ],
+    "non_reference_alternatives": [
+      {
+        "Name": "Tech Explainer",
+        "Source": "Specialist Blog",
+        "Region": "Asia",
+        "Format": "Deep Analysis",
+        "Topic": "Technology",
+        "Editorial Tone": "Constructive"
+      },
+      {
+        "Name": "Health Panic Clip",
+        "Source": "Tabloid",
+        "Region": "Domestic",
+        "Format": "Live Update",
+        "Topic": "Health",
+        "Editorial Tone": "Alarmist"
+      },
+      {
+        "Name": "Regional Fact Check",
+        "Source": "Public Broadcaster",
+        "Region": "E.U.",
+        "Format": "Investigative",
+        "Topic": "Politics",
+        "Editorial Tone": "Neutral"
+      },
+      {
+        "Name": "Culture Notebook",
+        "Source": "Independent Local",
+        "Region": "Domestic",
+        "Format": "Interview",
+        "Topic": "Culture",
+        "Editorial Tone": "Constructive"
+      },
+      {
+        "Name": "Breaking Mystery",
+        "Source": "Unknown",
+        "Region": "Other",
+        "Format": "Quick Brief",
+        "Topic": "Crime",
+        "Editorial Tone": "Sensational"
+      }
+    ]
+  }
+}

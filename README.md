@@ -1,4 +1,4 @@
-# uta_solver
+# UTA Solver
 
 Python implementation of the UTA (UTilites Additives) family of algorithms for multi-criteria decision analysis. UTA learns additive utility functions from preference rankings supplied by a decision maker.
 
@@ -70,13 +70,8 @@ scores_all = model.predict(X)
 
 | Algorithm | Utility monotonicity | Notes |
 |-----------|---------------------|-------|
-| `UTASTAR` (default) | Monotonic partial value functions | LP-based, interpretable |
-| `UTANM` | Not enforced | More flexible, allows non-monotonic functions |
-
-Notes:
-- In `UTASTAR`, nominal criteria are supported with a zero-baseline anchor on the first category level for identifiability.
-- Ordinal/nominal matching is value+type based. If your inputs mix representations (for example `1` vs `"1"`), normalize values explicitly.
-
+| `UTASTAR` (default) | Monotonic partial value functions | LP-based |
+| `UTANM` | Not enforced | MILP-based, More flexible, allows non-monotonic functions |
 
 ## Parameters
 

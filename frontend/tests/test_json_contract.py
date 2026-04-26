@@ -31,6 +31,7 @@ def _base_payload() -> dict:
         "algorithm_settings": {
             "algorithm": "UTASTAR",
             "sigma": 0.001,
+            "breakpoints": "quantile",
             "missing_value_treatment": "assumeAverageValue",
         },
         "alternatives": {
@@ -67,6 +68,7 @@ def test_load_project_accepts_embedded_rank_contract():
     assert reference_names == ["A", "B"]
     assert loaded_results is None
     assert algorithm_settings["algorithm"] == "UTASTAR"
+    assert algorithm_settings["breakpoints"] == "quantile"
 
 
 def test_load_project_rejects_missing_reference_rank():
@@ -109,6 +111,7 @@ def test_export_embeds_reference_rank_and_omits_legacy_fields():
         algorithm_settings={
             "algorithm": "UTASTAR",
             "sigma": 0.001,
+            "breakpoints": "uniform",
             "missing_value_treatment": "assumeAverageValue",
             "reference_names": ["A", "B"],
             "output_folder": "./ignored",
@@ -122,6 +125,7 @@ def test_export_embeds_reference_rank_and_omits_legacy_fields():
     assert payload["description"] == "Export description"
     assert "reference_names" not in payload["algorithm_settings"]
     assert "output_folder" not in payload["algorithm_settings"]
+    assert payload["algorithm_settings"]["breakpoints"] == "uniform"
 
     ref_rows = payload["alternatives"]["reference_alternatives"]
     non_ref_rows = payload["alternatives"]["non_reference_alternatives"]
@@ -147,7 +151,7 @@ def test_export_rejects_reserved_criterion_name_rank():
             alternatives_df=alternatives_df,
             rankings=[1, 2],
             results=None,
-            algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001},
+            algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001, "breakpoints": "quantile"},
             reference_names=["A", "B"],
         )
 
@@ -168,7 +172,7 @@ def test_export_import_round_trip_preserves_reference_ranks():
         alternatives_df=alternatives_df,
         rankings=[2, 1],
         results=None,
-        algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001},
+        algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001, "breakpoints": "uniform"},
         reference_names=["A", "B"],
     )
 
@@ -186,6 +190,7 @@ def test_export_import_round_trip_preserves_reference_ranks():
     assert reference_names == ["A", "B"]
     assert rankings == [2, 1]
     assert loaded_description == "Round trip description"
+    assert _algorithm_settings["breakpoints"] == "uniform"
 
 
 def test_export_serializes_optional_result_payload_fields():
@@ -216,10 +221,11 @@ def test_export_serializes_optional_result_payload_fields():
         alternatives_df=alternatives_df,
         rankings=[1, 2],
         results=results,
-        algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001},
+        algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001, "breakpoints": "quantile"},
         reference_names=["A", "B"],
     )
 
     payload = json.loads(exported)
+    assert payload["algorithm_settings"]["breakpoints"] == "quantile"
     assert payload["results"]["breakpoint_utilities"] == {"w_0_0": 0.1, "w_0_1": 0.6}
     assert payload["results"]["partial_values"] == {"price": [0.1, 0.6]}

@@ -104,6 +104,9 @@ Cardinal breakpoints can be built by:
 - `uniform`,
 - explicit dictionary per criterion.
 
+In the frontend and JSON project format, the exposed setting is `algorithm_settings.breakpoints`
+with `"quantile"` and `"uniform"` modes.
+
 After creation, empty segments are pruned when no training alternative falls inside them.
 This keeps the discretization supported by observed data.
 
@@ -299,7 +302,7 @@ After fitting, the model exposes:
 It forwards parameters to the selected backend:
 
 - `algorithm="UTASTAR"` or `"UTANM"`,
-- shared controls (`sigma`, breakpoints behavior, unknown handling, extrapolation),
+- shared controls (`sigma`, `breakpoints`, unknown handling, extrapolation),
 - UTANM controls (`theta`, `big_m`, `epsilon_sign`, degree search settings, MILP options).
 
 It also mirrors learned attributes from the backend model so downstream code can stay algorithm-agnostic.

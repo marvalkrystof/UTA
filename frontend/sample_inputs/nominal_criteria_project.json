@@ -3,6 +3,7 @@
   "algorithm_settings": {
     "algorithm": "UTASTAR",
     "sigma": 0.01,
+    "breakpoints": "quantile",
     "missing_value_treatment": "assumeAverageValue"
   },
   "criteria": {

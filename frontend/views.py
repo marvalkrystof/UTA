@@ -195,6 +195,7 @@ def render_project_setup():
             - Each item in `reference_alternatives` must include integer `rank`
             - `rankings` at top level is not supported
             - Optional: `algorithm_settings`, `results`
+            - `algorithm_settings.breakpoints` can be `"quantile"` or `"uniform"`
             - If `results` are included, the app can jump directly to Results.
 
             **CSV (`.csv`)**
@@ -994,11 +995,20 @@ def render_algorithm_settings():
     algorithm_index = algorithm_options.index(current_algorithm) if current_algorithm in algorithm_options else 0
 
     saved_theta = float(st.session_state.algorithm_settings.get("theta", 1.0))
+    saved_breakpoints = str(st.session_state.algorithm_settings.get("breakpoints", "quantile")).lower()
     saved_big_m = float(st.session_state.algorithm_settings.get("big_m", 1000.0))
     saved_ineq = float(st.session_state.algorithm_settings.get("ineq", 0.001))
     saved_max_nonmonotonicity_degree = int(st.session_state.algorithm_settings.get("max_nonmonotonicity_degree", 2))
     saved_objective_threshold = float(st.session_state.algorithm_settings.get("objective_threshold", 0.01))
     saved_minimum_improvement = float(st.session_state.algorithm_settings.get("minimum_improvement", 0.0))
+    breakpoint_options = {
+        "Quantile": "quantile",
+        "Uniform": "uniform",
+    }
+    default_breakpoint_label = next(
+        (label for label, value in breakpoint_options.items() if value == saved_breakpoints),
+        "Quantile",
+    )
 
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -1017,6 +1027,16 @@ def render_algorithm_settings():
             format="%.4f",
             help="Minimum utility difference enforced for strict pairwise preferences.",
         )
+        selected_breakpoint_label = st.selectbox(
+            "Cardinal Breakpoint Mode",
+            options=list(breakpoint_options.keys()),
+            index=list(breakpoint_options.keys()).index(default_breakpoint_label),
+            help=(
+                "Quantile places cardinal breakpoints by data percentiles; "
+                "Uniform spaces them evenly between the criterion min and max bounds."
+            ),
+        )
+        breakpoints = breakpoint_options[selected_breakpoint_label]
 
         missing_value_treatment_labels = {
             "Assume Average Value": "assumeAverageValue",
@@ -1099,6 +1119,7 @@ def render_algorithm_settings():
         st.write(f"**Alternatives:** {len(st.session_state.alternatives_df) if st.session_state.alternatives_df is not None else 0}")
         st.write(f"**Algorithm:** {algorithm}")
         st.write(f"**Sigma:** {sigma:.4f}")
+        st.write(f"**Cardinal breakpoints:** {breakpoints}")
         if algorithm == "UTANM":
             st.write(f"**BIGM:** {big_m:.4f}")
             st.write(f"**INEQ:** {ineq:.4f}")
@@ -1109,6 +1130,7 @@ def render_algorithm_settings():
     st.session_state.algorithm_settings = {
         "algorithm": algorithm,
         "sigma": sigma,
+        "breakpoints": breakpoints,
         "theta": theta,
         "big_m": big_m,
         "ineq": ineq,
@@ -1473,6 +1495,7 @@ def render_summary():
         st.markdown("**Algorithm Settings**")
         st.write(f"Algorithm: {settings.get('algorithm', 'UTASTAR')}")
         st.write(f"Sigma: {float(settings.get('sigma', 0.001)):.4f}")
+        st.write(f"Cardinal breakpoints: {settings.get('breakpoints', 'quantile')}")
         st.write(f"Missing value treatment: {settings.get('missing_value_treatment', 'assumeAverageValue')}")
 
     with col2:

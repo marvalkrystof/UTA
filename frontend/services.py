@@ -22,6 +22,7 @@ RESERVED_CRITERION_NAMES = {"rank"}
 DEFAULT_ALGORITHM_SETTINGS = {
     "algorithm": "UTASTAR",
     "sigma": 0.001,
+    "breakpoints": "quantile",
     "theta": 1.0,
     "big_m": 1000.0,
     "ineq": 0.001,
@@ -149,6 +150,11 @@ def _normalize_algorithm_settings(settings_payload: Any) -> dict:
             algorithm = str(settings_payload.get("algorithm", "UTASTAR")).upper()
             normalized["algorithm"] = algorithm if algorithm in {"UTASTAR", "UTANM"} else "UTASTAR"
 
+        if "breakpoints" in settings_payload:
+            breakpoints_mode = str(settings_payload.get("breakpoints", "quantile")).lower()
+            if breakpoints_mode in {"quantile", "uniform"}:
+                normalized["breakpoints"] = breakpoints_mode
+
         for key in ("sigma", "theta", "big_m", "ineq", "objective_threshold", "minimum_improvement"):
             if key in settings_payload:
                 try:
@@ -177,6 +183,7 @@ def _serialize_algorithm_settings_for_json(settings_payload: Optional[dict]) -> 
     common = {
         "algorithm": algorithm,
         "sigma": float(normalized["sigma"]),
+        "breakpoints": str(normalized["breakpoints"]),
         "missing_value_treatment": str(normalized["missing_value_treatment"]),
     }
 
@@ -379,6 +386,7 @@ def run_uta_analysis(
         criteria=criteria,
         algorithm=settings["algorithm"],
         sigma=settings["sigma"],
+        breakpoints=str(settings.get("breakpoints", "quantile")),
         theta=settings.get("theta", 1.0),
         big_m=float(settings.get("big_m", 1000.0)),
         epsilon_sign=float(settings.get("ineq", 0.001)),

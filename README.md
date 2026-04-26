@@ -81,6 +81,7 @@ scores_all = model.predict(X)
 | `n_segments` | 4 | Number of segments per cardinal criterion |
 | `algorithm` | `"UTASTAR"` | `"UTASTAR"` or `"UTANM"` |
 | `sigma` | 0.001 | Minimum utility gap between consecutive ranks |
+| `breakpoints` | `"quantile"` | Cardinal breakpoint mode (`"quantile"`/`"uniform"`), or explicit dictionary in the Python API |
 | `theta` | 1.0 | Shape-change penalty weight for `UTANM` |
 | `handle_unknown` | `"error"` | Unknown category handling for ordinal/nominal features (`"error"`/`"ignore"`) |
 | `extrapolation` | `"clip"` | Cardinal value policy outside breakpoint range (`"clip"`/`"raise"`) |
@@ -115,6 +116,7 @@ The frontend accepts JSON format.
   "algorithm_settings": {
     "algorithm": "UTASTAR",
     "sigma": 0.001,
+    "breakpoints": "quantile",
     "missing_value_treatment": "assumeAverageValue"
   },
   "alternatives": {

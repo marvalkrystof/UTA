@@ -39,6 +39,7 @@ def init_state() -> None:
         st.session_state.algorithm_settings = {
             "algorithm": "UTASTAR",
             "sigma": 0.001,
+            "breakpoints": "quantile",
             "theta": 1.0,
             "big_m": 1000.0,
             "ineq": 0.001,

@@ -3,6 +3,7 @@
   "algorithm_settings": {
     "algorithm": "UTANM",
     "sigma": 0.01,
+    "breakpoints": "quantile",
     "theta": 0.2,
     "big_m": 1000.0,
     "ineq": 0.001,

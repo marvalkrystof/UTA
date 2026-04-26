@@ -120,6 +120,29 @@ def _sync_alternatives_with_criteria() -> None:
     st.session_state.alternatives_df = updated_df[ordered_existing + remaining]
 
 
+def _build_groups_from_rankings(
+    reference_names: list[str] | None,
+    rankings: list[int] | None,
+    labels: list[str],
+) -> list[list[str]] | None:
+    if not reference_names or rankings is None or len(rankings) != len(reference_names):
+        return None
+
+    try:
+        ranks_int = [int(value) for value in rankings]
+    except Exception:
+        return None
+
+    unique_ranks = sorted(set(ranks_int))
+    expected = list(range(1, len(unique_ranks) + 1))
+    if unique_ranks != expected:
+        return None
+
+    rank_by_name = {str(name): rank for name, rank in zip(reference_names, ranks_int)}
+    groups = [[name for name in labels if rank_by_name.get(name) == rank] for rank in unique_ranks]
+    return groups
+
+
 def render_home():
     st.markdown(
         """
@@ -249,6 +272,7 @@ def render_project_setup():
                     st.session_state.alternatives_df = alternatives_df
                     st.session_state.rankings = rankings
                     st.session_state.reference_names = reference_names
+                    st.session_state.ranking_groups = None
                     st.session_state.algorithm_settings = {
                         **st.session_state.algorithm_settings,
                         **loaded_algorithm_settings,
@@ -268,6 +292,7 @@ def render_project_setup():
                     st.session_state.criteria_defs = criteria_defs
                     st.session_state.alternatives_df = alternatives_df
                     st.session_state.reference_names = None
+                    st.session_state.ranking_groups = None
                     st.session_state.step = 3
                     st.success(f"Loaded {len(alternatives_df)} alternatives from CSV")
                     st.info("Please finish criterion type selection in Step 3.")
@@ -763,6 +788,7 @@ def render_rank_preferences():
 
     saved_ref = st.session_state.reference_names or all_names
     saved_ref = [n for n in saved_ref if n in all_names] or all_names.copy()
+    loaded_reference_order = saved_ref.copy()
 
     reference_names_selected = st.multiselect(
         "Reference alternatives (used for fitting)",
@@ -815,19 +841,12 @@ def render_rank_preferences():
 
     groups = st.session_state.ranking_groups
     if not groups or not isinstance(groups, list):
-        rankings = st.session_state.rankings
-        if rankings is not None and len(rankings) == len(alternatives):
-            try:
-                ranks_int = [int(v) for v in rankings]
-                unique_ranks = sorted(set(ranks_int))
-                expected = list(range(1, len(unique_ranks) + 1))
-                if unique_ranks == expected:
-                    groups = [[name for name, r in zip(alternatives, ranks_int) if r == rank] for rank in unique_ranks]
-                else:
-                    groups = [[name] for name in alternatives]
-            except Exception:
-                groups = [[name] for name in alternatives]
-        else:
+        groups = _build_groups_from_rankings(
+            reference_names=loaded_reference_order,
+            rankings=st.session_state.rankings,
+            labels=alternatives,
+        )
+        if groups is None:
             groups = [[name] for name in alternatives]
 
     groups = _normalize_groups(groups, alternatives, keep_empty=True)
@@ -1554,6 +1573,7 @@ def _load_example(example_name: str) -> None:
     st.session_state.alternatives_df = X
     st.session_state.rankings = list(y)
     st.session_state.reference_names = X["Name"].astype(str).tolist()
+    st.session_state.ranking_groups = None
     st.session_state.step = 6
     st.success(f"Loaded {example_name} example")
     st.rerun()

@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import sys
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -185,3 +186,40 @@ def test_export_import_round_trip_preserves_reference_ranks():
     assert reference_names == ["A", "B"]
     assert rankings == [2, 1]
     assert loaded_description == "Round trip description"
+
+
+def test_export_serializes_optional_result_payload_fields():
+    alternatives_df = pd.DataFrame(
+        [
+            {"Name": "A", "price": 10.0},
+            {"Name": "B", "price": 12.0},
+        ]
+    )
+    results = {
+        "objective_value": 0.0,
+        "kendall_tau": 1.0,
+        "marginal_utilities": {"w_0_0": 0.5},
+        "breakpoint_utilities": {"w_0_0": 0.1, "w_0_1": 0.6},
+        "partial_values": {"price": np.array([0.1, 0.6])},
+        "utilities_df": pd.DataFrame(
+            [
+                {"Alternative": "A", "Utility": 0.6, "Actual Rank": 1},
+                {"Alternative": "B", "Utility": 0.1, "Actual Rank": 2},
+            ]
+        ),
+    }
+
+    exported = export_project_json(
+        project_name="With Results",
+        project_description="Serialized results",
+        criteria_defs={"price": {"type": "cardinal", "shape": "cost", "n_segments": 2}},
+        alternatives_df=alternatives_df,
+        rankings=[1, 2],
+        results=results,
+        algorithm_settings={"algorithm": "UTASTAR", "sigma": 0.001},
+        reference_names=["A", "B"],
+    )
+
+    payload = json.loads(exported)
+    assert payload["results"]["breakpoint_utilities"] == {"w_0_0": 0.1, "w_0_1": 0.6}
+    assert payload["results"]["partial_values"] == {"price": [0.1, 0.6]}

@@ -134,6 +134,8 @@ def _deserialize_results(results_payload: Any) -> dict | None:
         "objective_value": objective_value,
         "kendall_tau": kendall_tau,
         "marginal_utilities": results_payload["marginal_utilities"],
+        "breakpoint_utilities": results_payload.get("breakpoint_utilities"),
+        "partial_values": results_payload.get("partial_values"),
         "criteria": None,
         "is_loaded": True,
     }
@@ -410,6 +412,7 @@ def run_uta_analysis(
         "objective_value": model.objective_value_,
         "kendall_tau": kendall_tau,
         "marginal_utilities": model.marginal_utilities_,
+        "breakpoint_utilities": getattr(model, "breakpoint_utilities_", None),
         "partial_values": getattr(model, "partial_values_", None),
         "criteria": model.criteria_,
     }
@@ -683,4 +686,14 @@ def export_project_json(
                 else None
             ),
         }
+        if results.get("breakpoint_utilities") is not None:
+            payload["results"]["breakpoint_utilities"] = {
+                str(name): float(value)
+                for name, value in results["breakpoint_utilities"].items()
+            }
+        if results.get("partial_values") is not None:
+            payload["results"]["partial_values"] = {
+                str(name): [float(value) for value in values]
+                for name, values in results["partial_values"].items()
+            }
     return json.dumps(payload, indent=2)

@@ -55,6 +55,50 @@ def _is_reserved_criterion_name(name: str) -> bool:
     return str(name).strip().lower() == "rank"
 
 
+def _get_breakpoint_utilities_for_view(
+    criterion,
+    criterion_values,
+    breakpoint_utilities: dict | None,
+) -> list[float] | None:
+    breakpoint_count = len(criterion.breakpoints)
+
+    if isinstance(criterion_values, dict):
+        values: list[float] = []
+        for bp in criterion.breakpoints:
+            var_name = bp.get_marginal_utility_var_name()
+            candidates = (bp.index, str(bp.index), var_name, str(bp.position))
+            for key in candidates:
+                if key in criterion_values:
+                    values.append(float(criterion_values[key]))
+                    break
+            else:
+                values = []
+                break
+        if len(values) == breakpoint_count:
+            return values
+
+    if criterion_values is not None and not isinstance(criterion_values, (str, bytes, dict)):
+        try:
+            sequence = list(criterion_values)
+        except TypeError:
+            sequence = None
+        if sequence is not None and len(sequence) >= breakpoint_count:
+            return [float(sequence[idx]) for idx in range(breakpoint_count)]
+
+    if isinstance(breakpoint_utilities, dict):
+        values = []
+        for bp in criterion.breakpoints:
+            var_name = bp.get_marginal_utility_var_name()
+            if var_name not in breakpoint_utilities:
+                values = []
+                break
+            values.append(float(breakpoint_utilities[var_name]))
+        if len(values) == breakpoint_count:
+            return values
+
+    return None
+
+
 def _sync_alternatives_with_criteria() -> None:
     expected_columns = expected_alternative_columns(st.session_state.criteria_defs)
     alternatives_df = st.session_state.alternatives_df
@@ -1166,82 +1210,60 @@ def render_results():
                 st.caption("To recompute, load or define criteria, alternatives, and rankings first.")
         else:
             partial_values = results.get("partial_values") or {}
-            marginal_utilities = results.get("marginal_utilities") or {}
+            breakpoint_utilities = results.get("breakpoint_utilities") or {}
             for criterion in results["criteria"]:
                 with st.expander(f"{criterion.name} ({criterion.type})", expanded=True):
-                    mu_data = []
-                    criterion_values = partial_values.get(criterion.name, {})
-                    for bp in criterion.breakpoints:
-                        var_name = bp.get_marginal_utility_var_name()
-                        if isinstance(criterion_values, dict) and bp.id in criterion_values:
-                            value = float(criterion_values.get(bp.id, 0.0))
-                        else:
-                            value = float(marginal_utilities.get(var_name, 0.0))
-                        mu_data.append(
-                            {
-                                "Breakpoint": str(bp.position),
-                                "Variable": var_name,
-                                "Marginal Utility": value,
-                            }
+                    criterion_values = partial_values.get(criterion.name) if isinstance(partial_values, dict) else None
+                    utility_values = _get_breakpoint_utilities_for_view(
+                        criterion=criterion,
+                        criterion_values=criterion_values,
+                        breakpoint_utilities=breakpoint_utilities,
+                    )
+
+                    if utility_values is None:
+                        st.info(
+                            "Exact breakpoint utilities are unavailable for this result payload. "
+                            "Recompute the analysis to render the utility function accurately."
                         )
+                        continue
+
+                    mu_data = []
+                    increments_to_next = [
+                        float(utility_values[idx + 1] - utility_values[idx])
+                        for idx in range(len(utility_values) - 1)
+                    ] + [None]
+
+                    for idx, bp in enumerate(criterion.breakpoints):
+                        row = {
+                            "Breakpoint": str(bp.position),
+                            "Variable": bp.get_marginal_utility_var_name(),
+                            "Utility at Breakpoint": float(utility_values[idx]),
+                        }
+                        if criterion.type != "nominal":
+                            row["Increment to Next Breakpoint"] = increments_to_next[idx]
+                        mu_data.append(row)
 
                     mu_df = pd.DataFrame(mu_data)
+
                     if criterion.type == "cardinal":
-                        positions, utilities = [], []
-                        cumulative = 0.0
-                        for bp in criterion.breakpoints:
-                            if isinstance(criterion_values, dict) and bp.id in criterion_values:
-                                cumulative = float(criterion_values.get(bp.id, cumulative))
-                            else:
-                                var_name = bp.get_marginal_utility_var_name()
-                                marginal = float(marginal_utilities.get(var_name, 0.0))
-                                cumulative += marginal
-                            positions.append(float(bp.position))
-                            utilities.append(cumulative)
+                        positions = [float(bp.position) for bp in criterion.breakpoints]
                         fig = px.line(
                             x=positions,
-                            y=utilities,
+                            y=utility_values,
                             markers=True,
                             title=f"Utility Function: {criterion.name}",
-                            labels={"x": criterion.name, "y": "Cumulative Utility"},
+                            labels={"x": criterion.name, "y": "Utility"},
                         )
-                        st.plotly_chart(fig, use_container_width=True)
-                    elif criterion.type == "ordinal":
-                        positions, utilities = [], []
-                        cumulative = 0.0
-                        for bp in criterion.breakpoints:
-                            if isinstance(criterion_values, dict) and bp.id in criterion_values:
-                                cumulative = float(criterion_values.get(bp.id, cumulative))
-                            else:
-                                var_name = bp.get_marginal_utility_var_name()
-                                marginal = float(marginal_utilities.get(var_name, 0.0))
-                                cumulative += marginal
-                            positions.append(str(bp.position))
-                            utilities.append(cumulative)
-                        fig = px.bar(
-                            x=positions,
-                            y=utilities,
-                            title=f"Utility Function: {criterion.name}",
-                            labels={"x": criterion.name, "y": "Cumulative Utility"},
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
                     else:
                         positions = [str(bp.position) for bp in criterion.breakpoints]
-                        if isinstance(criterion_values, dict) and criterion_values:
-                            marginals = [float(criterion_values.get(bp.id, 0.0)) for bp in criterion.breakpoints]
-                        else:
-                            marginals = [
-                                float(marginal_utilities.get(bp.get_marginal_utility_var_name(), 0.0))
-                                for bp in criterion.breakpoints
-                            ]
-                            fig = px.bar(
-                                x=positions,
-                                y=marginals,
-                                title=f"Utility Function: {criterion.name}",
-                                labels={"x": criterion.name, "y": "Marginal Utility"},
-                            )
-                        st.plotly_chart(fig, use_container_width=True)
+                        fig = px.bar(
+                            x=positions,
+                            y=utility_values,
+                            title=f"Utility Function: {criterion.name}",
+                            labels={"x": criterion.name, "y": "Utility"},
+                        )
 
+                    st.plotly_chart(fig, use_container_width=True)
                     st.dataframe(mu_df, use_container_width=True, hide_index=True)
 
     with tab3:

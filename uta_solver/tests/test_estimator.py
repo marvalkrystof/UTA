@@ -13,6 +13,7 @@ These tests verify that:
 import pytest
 import numpy as np
 import pandas as pd
+from scipy.stats import kendalltau
 
 from uta_solver.estimator import UTAEstimator
 from uta_solver.criteria import CardinalCriterion, OrdinalCriterion, NominalCriterion
@@ -310,7 +311,7 @@ class TestCustomCriterionObjects:
 class TestScore:
 
     def test_perfect_ranking_score(self):
-        """When preferences are perfectly learnable, |tau| should be high."""
+        """When preferences are perfectly learnable, Kendall's tau should be 1."""
         X = pd.DataFrame({
             "a": [10.0, 8.0, 6.0, 4.0, 2.0],
             "b": [9.0, 7.0, 5.0, 3.0, 1.0],
@@ -318,13 +319,28 @@ class TestScore:
         y = np.array([1, 2, 3, 4, 5])
         model = UTAEstimator(n_segments=3).fit(X, y)
         tau = model.score(X, y)
-        assert abs(tau) > 0.8
+        assert tau == pytest.approx(1.0)
 
     def test_score_is_float(self):
         X, y = _simple_data()
         model = UTAEstimator(n_segments=2).fit(X, y)
         tau = model.score(X, y)
         assert isinstance(tau, float)
+
+    def test_score_matches_scipy_kendall_tau(self):
+        X, y = _simple_data()
+        model = UTAEstimator(n_segments=2).fit(X, y)
+        utilities = model.predict(X)
+        expected = kendalltau(y, -utilities, variant="b").statistic
+        tau = model.score(X, y)
+        assert tau == pytest.approx(float(expected))
+
+    def test_score_with_all_tied_ranks_returns_zero(self):
+        X = pd.DataFrame({"x": [3.0, 7.0, 5.0]})
+        y = np.array([1, 1, 1])
+        model = UTAEstimator(n_segments=2).fit(X, y)
+        tau = model.score(X, y)
+        assert tau == pytest.approx(0.0)
 
 
 

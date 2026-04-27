@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 from scipy.optimize import Bounds, LinearConstraint, linprog, milp
+from scipy.stats import kendalltau
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.utils.validation import check_is_fitted
 
@@ -143,7 +144,9 @@ class _UTABaseEstimator(BaseEstimator, RegressorMixin):
 
         self.is_fitted_ = True
         self.utilities_ = self.predict(X_ref)
-        self.ranking_fit_ = self._pairwise_ranking_accuracy(self.utilities_, y_ref)
+        self.pairwise_ranking_accuracy_ = self._pairwise_ranking_accuracy(self.utilities_, y_ref)
+        self.kendall_tau_ = self._kendall_tau(self.utilities_, y_ref)
+        self.ranking_fit_ = self.kendall_tau_
         return self
 
     def predict(self, X: Union[pd.DataFrame, np.ndarray]) -> np.ndarray:
@@ -165,7 +168,7 @@ class _UTABaseEstimator(BaseEstimator, RegressorMixin):
     def score(self, X: Union[pd.DataFrame, np.ndarray], y: ArrayLike) -> float:
         y_arr = np.asarray(y)
         utilities = self.predict(X)
-        return self._pairwise_ranking_accuracy(utilities, y_arr)
+        return self._kendall_tau(utilities, y_arr)
 
     def get_partial_value_functions(self) -> Dict[str, dict]:
         check_is_fitted(self, ["partial_values_", "marginal_increments_"])
@@ -460,6 +463,17 @@ class _UTABaseEstimator(BaseEstimator, RegressorMixin):
         if total == 0:
             return 1.0
         return ok / total
+
+    @staticmethod
+    def _kendall_tau(utilities: np.ndarray, y: np.ndarray) -> float:
+        result = kendalltau(np.asarray(y), -np.asarray(utilities), variant="b")
+        tau = result.statistic if hasattr(result, "statistic") else result[0]
+
+        # Kendall's tau is undefined when one side is constant.
+        # For estimator scoring, return a neutral 0.0 instead of propagating NaN.
+        if not np.isfinite(tau):
+            return 0.0
+        return float(tau)
 
     def _postprocess_solution(self, u_values: np.ndarray, sp: np.ndarray, sm: np.ndarray, objective: float) -> None:
         self._u_values_ = u_values.copy()
@@ -1262,6 +1276,8 @@ class UTAEstimator(BaseEstimator, RegressorMixin):
             "errors_minus_",
             "objective_value_",
             "ranking_fit_",
+            "pairwise_ranking_accuracy_",
+            "kendall_tau_",
             "shape_change_flags_",
             "shape_penalty_value_",
             "criterion_extrema_",

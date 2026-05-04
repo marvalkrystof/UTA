@@ -323,6 +323,39 @@
         "Length in minutes": 4
       }
     ],
-    "non_reference_alternatives": []
+    "non_reference_alternatives": [
+      {
+        "Name": "Crime news",
+        "Location": "Domestic",
+        "Precise Location": "Berlin",
+        "Business": 0,
+        "Sport": 0,
+        "Politics": 1,
+        "Culture": 0,
+        "Science": 0,
+        "Crime": 4,
+        "Technology": 0,
+        "Travel": 0,
+        "Health": 0,
+        "Environment": 0,
+        "Length in minutes": 3
+      },
+      {
+        "Name": "Politics News",
+        "Location": "Domestic",
+        "Precise Location": "Berlin",
+        "Business": 0,
+        "Sport": 0,
+        "Politics": 4,
+        "Culture": 0,
+        "Science": 0,
+        "Crime": 1,
+        "Technology": 0,
+        "Travel": 0,
+        "Health": 0,
+        "Environment": 0,
+        "Length in minutes": 2
+      }
+    ]
   }
 }
